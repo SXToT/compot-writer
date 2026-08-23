@@ -108,4 +108,3 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 ## Existing ZIP review shortcut
 
 When the input is already a 文献速递 ZIP, do not parse the paper or rebuild from the standard manifest unless content verification is requested. Extract once, audit the folder/Word/ZIP, make minimal local corrections, run fast structural checks, render the changed Word once, then create and validate one replacement ZIP. Preserve the original ZIP and any supplied avatar/publication TXT. Build the corrected replacement under a distinct task-local staging folder, validate it, then copy it over the generated delivery; do not delete the accepted output before its replacement exists.
-
