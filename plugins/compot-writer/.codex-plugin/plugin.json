@@ -1,0 +1,34 @@
+{
+  "name": "compot-writer",
+  "version": "1.0.0",
+  "description": "Create, revise, audit, and package numbered Chinese literature digests from academic PDFs.",
+  "author": {
+    "name": "SXToT",
+    "url": "https://github.com/SXToT"
+  },
+  "homepage": "https://github.com/SXToT/compot-writer",
+  "repository": "https://github.com/SXToT/compot-writer",
+  "keywords": [
+    "codex",
+    "academic-pdf",
+    "word",
+    "literature-digest"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Compot Writer",
+    "shortDescription": "Turn academic PDFs into validated Chinese literature-digest packages.",
+    "longDescription": "Creates, revises, audits, and packages numbered Chinese 文献速递 with source-faithful writing, figures, Word formatting, companion files, and ZIP validation.",
+    "developerName": "SXToT",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/SXToT/compot-writer",
+    "defaultPrompt": [
+      "根据我提供的学术论文 PDF，生成并验证一套编号文献速递 Word/ZIP。",
+      "审核现有文献速递的格式、命名和 ZIP 结构，并列出问题。"
+    ]
+  }
+}

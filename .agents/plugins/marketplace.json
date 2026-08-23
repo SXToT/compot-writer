@@ -1,0 +1,20 @@
+{
+  "name": "sxtot-compot-writer",
+  "interface": {
+    "displayName": "SXToT Compot Writer"
+  },
+  "plugins": [
+    {
+      "name": "compot-writer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/compot-writer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
