@@ -15,10 +15,19 @@ Call the workspace dependency loader once and use its bundled Python path for ev
 
 ## Resolve inputs once
 
+- Check the per-user writer profile once before resolving task inputs:
+
+  ```powershell
+  python scripts/user_profile.py show
+  ```
+
+  If no profile exists, use the writer name and avatar supplied in the current request and save them with `python scripts/user_profile.py set --name "姓名" --avatar "头像图片路径"`. If either item is missing, ask the user for both before building. The saved profile is reused automatically in later tasks on the same Codex installation.
+- Treat an explicitly supplied writer name and avatar as a per-task override unless the user asks to update the saved default. To update the default, run the same `set` command with the new values. Never overwrite the saved profile silently.
+- Use the bundled 高然 avatar only when the user explicitly requests the legacy 高然 identity or an existing package already uses it; do not silently assign 高然 to a new user's package.
 - Require one source PDF.
 - Use an issue number explicitly supplied by the user or a supplied order sheet before inferring from filenames. Never replace an authoritative roster with “largest number + 1”.
 - If no authoritative number exists, scan sibling numbered outputs and infer only when unambiguous; otherwise ask.
-- Use the supplied writer/avatar/publication slot. Otherwise use 高然, the bundled avatar, and `待定`.
+- Use the supplied publication slot; otherwise use `待定`.
 - Preserve an existing publication filename such as `姓名 MMDD HH：MM发表.txt`; do not invent or normalize away supplied dates.
 
 ## Fast path
@@ -71,11 +80,11 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 6. **Finalize once:** After visual QA passes, create the outer ZIP from the accepted folder:
 
    ```powershell
-   python scripts/finalize_package.py "job/output/N 标题" --author "姓名"
+   python scripts/finalize_package.py "job/output/N 标题"
    python scripts/validate_package.py manifest.json --output-parent "job/output"
    ```
 
-   If replacing a ZIP generated earlier in the same task, add `--replace`. Copy final deliverables to their destination only after final validation. Compare delivery hashes once; do not repeatedly hash during drafting.
+   The finalizer uses the saved writer profile by default. For a per-task writer override, pass `--author "姓名"`. If replacing a ZIP generated earlier in the same task, add `--replace`. Copy final deliverables to their destination only after final validation. Compare delivery hashes once; do not repeatedly hash during drafting.
 
 ## Non-negotiable writing rules
 
@@ -108,3 +117,4 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 ## Existing ZIP review shortcut
 
 When the input is already a 文献速递 ZIP, do not parse the paper or rebuild from the standard manifest unless content verification is requested. Extract once, audit the folder/Word/ZIP, make minimal local corrections, run fast structural checks, render the changed Word once, then create and validate one replacement ZIP. Preserve the original ZIP and any supplied avatar/publication TXT. Build the corrected replacement under a distinct task-local staging folder, validate it, then copy it over the generated delivery; do not delete the accepted output before its replacement exists.
+

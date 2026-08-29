@@ -1,4 +1,5 @@
 interface:
   display_name: "Compot Writer"
   short_description: "Rapidly create and verify numbered Chinese literature digests"
-  default_prompt: "Use $compot-writer's cached draft-to-final workflow to turn the attached academic PDF into a numbered Chinese literature-digest Word and ZIP package."
+  default_prompt: "Use $compot-writer's saved writer profile and cached draft-to-final workflow to turn the attached academic PDF into a numbered Chinese literature-digest Word and ZIP package."
+

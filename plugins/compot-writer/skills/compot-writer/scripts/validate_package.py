@@ -12,6 +12,7 @@ from docx.oxml.ns import qn
 from PIL import Image
 
 from build_package import ASSET_NAMES, FORBIDDEN_PATTERNS, FULLWIDTH_ASCII, SLOT_RATIOS, load_manifest, resolve_manifest_path
+from user_profile import load_user_profile
 
 
 CONTENT_INDICES = [3, 4, 6, 7, 8, 10, 11, 13, 14, 16, 17, 19, 20, 22, 23, 24]
@@ -26,11 +27,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Validate a generated compot-writer package.")
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--output-parent", required=True, type=Path)
+    parser.add_argument("--profile-dir", type=Path, help="Override the per-user profile directory")
     parser.add_argument("--fast", action="store_true", help="Validate the folder/DOCX only; skip outer ZIP CRC and content checks")
     args = parser.parse_args()
 
     manifest_path = args.manifest.expanduser().resolve()
-    manifest, _ = load_manifest(manifest_path)
+    profile = load_user_profile(args.profile_dir)
+    default_author = profile["name"] if profile is not None else None
+    manifest, _ = load_manifest(manifest_path, default_author=default_author)
     output_parent = args.output_parent.expanduser().resolve()
     number = int(manifest["number"])
     title = str(manifest["title"])
@@ -174,3 +178,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -14,6 +14,8 @@ from pathlib import Path
 from lxml import etree
 from PIL import Image
 
+from user_profile import load_user_profile, validate_author
+
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 XML = "http://www.w3.org/XML/1998/namespace"
@@ -68,7 +70,9 @@ def resolve_manifest_path(raw: str, manifest_path: Path) -> Path:
     return path.resolve()
 
 
-def load_manifest(path: Path) -> tuple[dict[str, object], dict[int, str]]:
+def load_manifest(
+    path: Path, *, default_author: str | None = None
+) -> tuple[dict[str, object], dict[int, str]]:
     manifest = json.loads(path.read_text(encoding="utf-8"))
     number = manifest.get("number")
     if not isinstance(number, int) or number <= 0:
@@ -76,9 +80,12 @@ def load_manifest(path: Path) -> tuple[dict[str, object], dict[int, str]]:
     title = require_text(manifest.get("title"), "title")
     if INVALID_FILENAME.search(title):
         raise ValueError("title contains a character that is invalid in Windows filenames")
-    author = require_text(manifest.get("author", "高然"), "author")
-    if INVALID_FILENAME.search(author):
-        raise ValueError("author contains a character that is invalid in Windows filenames")
+    raw_author = manifest.get("author", default_author)
+    if raw_author is None:
+        raise ValueError(
+            "author is missing and no compot-writer user profile is configured"
+        )
+    author = validate_author(require_text(raw_author, "author"))
 
     lead = manifest.get("lead")
     if not isinstance(lead, list) or len(lead) != 2:
@@ -310,17 +317,39 @@ def main() -> None:
     parser.add_argument("--assets-dir", required=True, type=Path)
     parser.add_argument("--output-parent", required=True, type=Path)
     parser.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
-    parser.add_argument("--avatar", type=Path, default=DEFAULT_AVATAR)
+    parser.add_argument(
+        "--avatar",
+        type=Path,
+        help="Per-task avatar override. Otherwise use the saved writer profile.",
+    )
+    parser.add_argument(
+        "--profile-dir",
+        type=Path,
+        help="Override the per-user profile directory.",
+    )
     parser.add_argument("--replace-generated", action="store_true")
     parser.add_argument("--draft", action="store_true", help="Build the folder/DOCX only; skip outer ZIP and deep package hashing")
     args = parser.parse_args()
 
     manifest_path = args.manifest.expanduser().resolve()
-    manifest, slots = load_manifest(manifest_path)
+    profile = load_user_profile(args.profile_dir)
+    default_author = profile["name"] if profile is not None else None
+    manifest, slots = load_manifest(manifest_path, default_author=default_author)
     assets_dir = args.assets_dir.expanduser().resolve()
     output_parent = args.output_parent.expanduser().resolve()
     template = args.template.expanduser().resolve()
-    avatar = args.avatar.expanduser().resolve()
+    author = str(manifest["author"])
+    if args.avatar is not None:
+        avatar = args.avatar.expanduser().resolve()
+    elif profile is not None and author == profile["name"]:
+        avatar = Path(profile["avatar"]).resolve()
+    elif author == "高然":
+        avatar = DEFAULT_AVATAR.resolve()
+    else:
+        raise ValueError(
+            f"No avatar is configured for writer {author!r}; initialize the user "
+            "profile or pass --avatar for this task"
+        )
     source_pdf = resolve_manifest_path(str(manifest.get("source_pdf", "")), manifest_path)
     if not source_pdf.is_file() or source_pdf.suffix.lower() != ".pdf":
         raise FileNotFoundError(f"Source PDF not found: {source_pdf}")
@@ -332,7 +361,6 @@ def main() -> None:
 
     number = int(manifest["number"])
     title = str(manifest["title"])
-    author = str(manifest["author"])
     folder_name = f"{number} {title}"
     output_dir = output_parent / folder_name
     zip_path = output_parent / f"{folder_name}-{author}.zip"
@@ -387,3 +415,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

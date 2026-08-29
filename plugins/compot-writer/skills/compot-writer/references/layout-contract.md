@@ -8,8 +8,8 @@ For issue number `N`, Chinese title `T`, and writer `A`:
 - Word: `[文献速递No.N]T.docx`
 - Archive: `N T-A.zip`
 - The archive must contain one root folder named `N T`.
-- Root-folder files: source PDF with its original filename, Word file, `封面.png`, `图片1.png` to `图片5.png`, `表1.png`, `高然.png`, and `高然 <publish_slot>发表.txt`.
-- When no publication slot is supplied, use `高然 待定发表.txt`.
+- Root-folder files: source PDF with its original filename, Word file, `封面.png`, `图片1.png` to `图片5.png`, `表1.png`, `A.png`, and `A <publish_slot>发表.txt`.
+- When no publication slot is supplied, use `A 待定发表.txt`.
 
 ## 2. Manifest schema
 
@@ -19,7 +19,7 @@ Use UTF-8 JSON. All text must come from the source PDF.
 {
   "number": 789,
   "title": "方法名用于某类任务",
-  "author": "高然",
+  "author": "张三",
   "source_pdf": "C:/absolute/path/paper.pdf",
   "publish_slot": "0827 08：08",
   "lead": [
@@ -40,7 +40,7 @@ Use UTF-8 JSON. All text must come from the source PDF.
 }
 ```
 
-The builder requires every field. `figure1.text` has exactly two paragraphs; every other `text` field is one paragraph.
+The builder requires every content field. `author` may be omitted when a saved writer profile exists; include it for a per-task override and pass the matching avatar to the builder. `figure1.text` has exactly two paragraphs; every other `text` field is one paragraph.
 
 ## 3. Paragraph plan
 
@@ -49,7 +49,7 @@ The normalized template contains 36 direct body paragraphs and eight inline imag
 | Paragraph | Purpose |
 |---:|---|
 | 0 | `[文献速递No.N]T`, 15 pt, dark blue, bold; Chinese font `黑体` |
-| 1 | `撰稿人：高然` |
+| 1 | `撰稿人：A` |
 | 2 | Cover banner image |
 | 3–4 | Two opening paragraphs |
 | 5–8 | Figure 1, caption, and two explanatory paragraphs |
@@ -97,3 +97,4 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - No blank page other than intentional whitespace on the final writer card.
 - The opening writer line appears below the title and above the cover banner.
 - Inspect all rendered pages at readable resolution before delivery.
+

@@ -6,6 +6,8 @@ import json
 import zipfile
 from pathlib import Path
 
+from user_profile import load_user_profile
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -18,10 +20,18 @@ def sha256_file(path: Path) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create the final outer ZIP after DOCX visual QA has passed.")
     parser.add_argument("folder", type=Path)
-    parser.add_argument("--author", required=True)
+    parser.add_argument("--author", help="Per-task writer override; defaults to the saved profile")
+    parser.add_argument("--profile-dir", type=Path, help="Override the per-user profile directory")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--replace", action="store_true")
     args = parser.parse_args()
+
+    profile = load_user_profile(args.profile_dir)
+    author = args.author or (profile["name"] if profile is not None else None)
+    if not author:
+        raise SystemExit(
+            "No writer name supplied and no compot-writer profile is configured"
+        )
 
     folder = args.folder.expanduser().resolve()
     if not folder.is_dir():
@@ -29,7 +39,7 @@ def main() -> None:
     output = (
         args.output.expanduser().resolve()
         if args.output
-        else folder.parent / f"{folder.name}-{args.author}.zip"
+        else folder.parent / f"{folder.name}-{author}.zip"
     )
     if output.exists() and not args.replace:
         raise SystemExit("Output ZIP exists; pass --replace only for the current task's generated ZIP")
@@ -60,3 +70,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
