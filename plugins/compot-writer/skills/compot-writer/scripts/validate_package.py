@@ -11,7 +11,15 @@ from docx import Document
 from docx.oxml.ns import qn
 from PIL import Image
 
-from build_package import ASSET_NAMES, FORBIDDEN_PATTERNS, FULLWIDTH_ASCII, SLOT_RATIOS, load_manifest, resolve_manifest_path
+from build_package import (
+    ASSET_NAMES,
+    FORBIDDEN_PATTERNS,
+    FULLWIDTH_ASCII,
+    SLOT_RATIOS,
+    load_manifest,
+    resolve_manifest_path,
+    validate_publication_metadata,
+)
 from user_profile import load_user_profile
 
 
@@ -115,6 +123,12 @@ def main() -> None:
         failures.append(f"Fullwidth parentheses remain around ASCII-only content: {remaining}")
     if FORMULA_RE.search(article):
         failures.append("Formula markers remain in the authored article")
+    try:
+        validate_publication_metadata(
+            f"{document.paragraphs[3].text}\n{document.paragraphs[4].text}"
+        )
+    except (IndexError, ValueError) as exc:
+        failures.append(f"Publication metadata format is invalid: {exc}")
     body_chars = sum(len(document.paragraphs[index].text) for index in CONTENT_INDICES)
     if not 2200 <= body_chars <= 3600:
         warnings.append(f"Authored body length is {body_chars} characters; reference target is roughly 2500–3200")
@@ -178,4 +192,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

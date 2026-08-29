@@ -39,6 +39,11 @@ FORBIDDEN_PATTERNS = {
     "我": re.compile(r"(?:^|[，。；：、\s])我(?:[，。；：、\s]|$)"),
 }
 FORMULA_MARKERS = (r"\frac", r"\sum", r"\begin{equation", "∑", "∫", "≃", "≈")
+PUBLICATION_METADATA_RE = re.compile(
+    r'该成果以"(?P<title>[^"\r\n]*[A-Za-z][^"\r\n]*)"为题，'
+    r'发表在"(?P<venue>[^"\r\n]*[A-Za-z][^"\r\n]*)"上。'
+)
+PUBLICATION_METADATA_EXAMPLE = '该成果以"Paper Title"为题，发表在"Journal Name"上。'
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -55,6 +60,21 @@ def sha256_file(path: Path) -> str:
 
 def normalize_parentheses(text: str) -> str:
     return FULLWIDTH_ASCII.sub(r"(\1)", text.strip())
+
+
+def validate_publication_metadata(text: str) -> tuple[str, str]:
+    """Require exact English title/venue names in the canonical ASCII-quote form."""
+    match = PUBLICATION_METADATA_RE.search(text)
+    if match is None:
+        raise ValueError(
+            "The opening must include the exact English paper title and exact English "
+            "journal/venue name in this form: " + PUBLICATION_METADATA_EXAMPLE
+        )
+    title = match.group("title").strip()
+    venue = match.group("venue").strip()
+    if title != match.group("title") or venue != match.group("venue"):
+        raise ValueError("Do not place whitespace inside the publication metadata quotes")
+    return title, venue
 
 
 def require_text(value: object, label: str) -> str:
@@ -103,6 +123,7 @@ def load_manifest(
         7: require_text(f1["text"][0], "figure1.text[0]"),
         8: require_text(f1["text"][1], "figure1.text[1]"),
     }
+    validate_publication_metadata(f"{slots[3]}\n{slots[4]}")
     mapping = [
         ("figure2", 10, 11),
         ("figure3", 13, 14),
@@ -415,4 +436,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

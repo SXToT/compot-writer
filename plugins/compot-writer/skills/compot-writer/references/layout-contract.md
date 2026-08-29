@@ -24,7 +24,7 @@ Use UTF-8 JSON. All text must come from the source PDF.
   "publish_slot": "0827 08：08",
   "lead": [
     "研究背景、任务难点与实际需求。",
-    "作者、方法、核心贡献以及英文论文题名和期刊信息。"
+    "作者、方法与核心贡献。该成果以\"Exact English Paper Title\"为题，发表在\"Exact English Journal Name\"上。"
   ],
   "figure1": {
     "caption": "图1 方法总体结构",
@@ -85,6 +85,7 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - Avoid formulas, variable derivations, and equation-by-equation exposition. Explain mechanisms in plain Chinese.
 - Convert `（ASCII-only）` to `(ASCII-only)`. Keep Chinese parentheses for Chinese content.
 - Retain exact method names, dataset names, metrics, author surnames, publication venue, and numerical results.
+- The two opening paragraphs must include the exact English paper title and the exact English journal/venue name in the canonical form `该成果以"Paper Title"为题，发表在"Journal Name"上。`. Enclose both names with straight ASCII double quotes (`"`); do not use `《》`, Chinese curly quotation marks (`“”`), translated or abbreviated names, or an unquoted venue.
 - Use `作者` rather than assigning the source paper's contribution to the digest writer.
 
 ## 6. Visual acceptance criteria
@@ -97,4 +98,3 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - No blank page other than intentional whitespace on the final writer card.
 - The opening writer line appears below the title and above the cover banner.
 - Inspect all rendered pages at readable resolution before delivery.
-

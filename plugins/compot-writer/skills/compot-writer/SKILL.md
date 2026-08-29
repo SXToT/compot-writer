@@ -50,7 +50,7 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 
    The command caches by source size/mtime and defaults to 110 DPI. Read extracted text and inspect every preview page. Do not rerun when `cache_hit` is true.
 
-3. **Evidence:** Identify title, authors, venue, DOI/link, method, experiments, exact numerical findings, useful figures, and a results table. Crop only selected regions at high resolution; never re-render the whole PDF at high DPI. Batch all regions in one process:
+3. **Evidence:** Identify the exact English paper title, authors, exact English journal/venue name, DOI/link, method, experiments, exact numerical findings, useful figures, and a results table. Verify the title and venue spelling against the source PDF rather than translating or abbreviating them. Crop only selected regions at high resolution; never re-render the whole PDF at high DPI. Batch all regions in one process:
 
    ```powershell
    python scripts/render_pdf_regions.py "paper.pdf" "job/crops.json" --out-dir "job/assets" --dpi 240
@@ -91,6 +91,7 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 - Attribute the source work to `作者`、`该研究`、`该论文`、`原文` or named authors. Never use `我`、`我们`、`本文`、`本研究` in authored digest content, especially page 1. The fixed disclaimer may use `本文` because it refers to the digest.
 - Omit formulas by default. Explain mechanisms in concise prose; keep a formula only when the core idea cannot be understood without it.
 - Use ASCII parentheses `()` when the entire parenthetical content is English/ASCII, such as `(AEU)` or `(MFEL-YOLO)`. Use `（）` when Chinese is present.
+- State the publication metadata in the opening with both exact English names, using this sentence: `该成果以"Paper Title"为题，发表在"Journal Name"上。` The paper title and journal/venue name must each be enclosed in straight ASCII double quotes (`"`). Do not use `《》`, Chinese curly quotation marks (`“”`), a translated/abbreviated title or venue, or leave either name unquoted.
 - Do not fabricate metadata, numerical results, dataset details, or conclusions. Keep every technical claim traceable to the PDF.
 - Write compact, natural Chinese rather than sentence-by-sentence translation.
 
@@ -117,4 +118,3 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 ## Existing ZIP review shortcut
 
 When the input is already a 文献速递 ZIP, do not parse the paper or rebuild from the standard manifest unless content verification is requested. Extract once, audit the folder/Word/ZIP, make minimal local corrections, run fast structural checks, render the changed Word once, then create and validate one replacement ZIP. Preserve the original ZIP and any supplied avatar/publication TXT. Build the corrected replacement under a distinct task-local staging folder, validate it, then copy it over the generated delivery; do not delete the accepted output before its replacement exists.
-
