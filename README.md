@@ -56,7 +56,7 @@ Legacy root-path installation also remains supported with `--repo SXToT/compot-w
 ## Compatibility and distribution
 
 - The full final-render workflow currently targets Codex on Windows with Microsoft Word available.
-- While this repository is private, another user needs GitHub repository access and configured Git credentials before installation.
+- This repository is public, so other users can install it directly from GitHub without private-repository credentials.
 - The bundled template and image are retained for faithful document generation. This repository does not assert a broad open-source license over those assets.
 - Universal Plugins Directory publication is a separate OpenAI review process; this repository provides GitHub marketplace and direct Skill installation.
 
