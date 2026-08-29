@@ -44,6 +44,8 @@ PUBLICATION_METADATA_RE = re.compile(
     r'发表在"(?P<venue>[^"\r\n]*[A-Za-z][^"\r\n]*)"上。'
 )
 PUBLICATION_METADATA_EXAMPLE = '该成果以"Paper Title"为题，发表在"Journal Name"上。'
+CONCLUSION_PREFIXES = ("综上，", "总体而言，", "总的来说，")
+MIN_CONCLUSION_CHARS = 80
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -75,6 +77,24 @@ def validate_publication_metadata(text: str) -> tuple[str, str]:
     if title != match.group("title") or venue != match.group("venue"):
         raise ValueError("Do not place whitespace inside the publication metadata quotes")
     return title, venue
+
+
+def validate_conclusion(text: str) -> str:
+    """Require a substantial standalone summary as the final authored paragraph."""
+    conclusion = text.strip()
+    if not conclusion.startswith(CONCLUSION_PREFIXES):
+        raise ValueError(
+            "conclusion must begin with 综上，, 总体而言，, or 总的来说，"
+        )
+    if not conclusion.endswith("。"):
+        raise ValueError("conclusion must end with a Chinese full stop (。)")
+    content_length = len(re.sub(r"\s+", "", conclusion))
+    if content_length < MIN_CONCLUSION_CHARS:
+        raise ValueError(
+            f"conclusion must contain at least {MIN_CONCLUSION_CHARS} non-whitespace characters; "
+            f"found {content_length}"
+        )
+    return conclusion
 
 
 def require_text(value: object, label: str) -> str:
@@ -137,7 +157,7 @@ def load_manifest(
             raise ValueError(f"{key} must be an object")
         slots[caption_index] = require_text(block.get("caption"), f"{key}.caption")
         slots[text_index] = require_text(block.get("text"), f"{key}.text")
-    slots[24] = require_text(manifest.get("conclusion"), "conclusion")
+    slots[24] = validate_conclusion(require_text(manifest.get("conclusion"), "conclusion"))
     slots[27] = "原文链接："
     source_link = require_text(manifest.get("source_link"), "source_link")
     if source_link.lower().startswith("10."):

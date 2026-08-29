@@ -35,7 +35,7 @@ Use UTF-8 JSON. All text must come from the source PDF.
   "figure4": {"caption": "图4 两个模块（左）和（右）的结构", "text": "跨层或检测阶段说明。"},
   "table1": {"caption": "表1 主要数据集上的性能对比", "text": "实验设置与关键定量结果。"},
   "figure5": {"caption": "图5 定性结果对比", "text": "定性结果、消融证据或误差分析。"},
-  "conclusion": "总结问题、方法、证据、效率和应用意义。",
+  "conclusion": "综上，概括研究问题、所提方法、关键实验或定量证据，以及该成果的意义；不得引入正文和原文均未支持的新结论。",
   "source_link": "https://doi.org/..."
 }
 ```
@@ -57,7 +57,8 @@ The normalized template contains 36 direct body paragraphs and eight inline imag
 | 12–14 | Figure 3, caption, and explanation |
 | 15–17 | Figure 4, caption, and explanation |
 | 18–20 | Table 1, caption, and quantitative analysis |
-| 21–24 | Figure 5, caption, analysis, and conclusion |
+| 21–23 | Figure 5, caption, and analysis |
+| 24 | Final standalone conclusion; it is the last authored paragraph |
 | 27–28 | `原文链接：` and DOI or stable link |
 | 33–34 | Preserved final writer card and disclaimer; paragraph 33 must have `pageBreakBefore` |
 
@@ -86,6 +87,7 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - Convert `（ASCII-only）` to `(ASCII-only)`. Keep Chinese parentheses for Chinese content.
 - Retain exact method names, dataset names, metrics, author surnames, publication venue, and numerical results.
 - The two opening paragraphs must include the exact English paper title and the exact English journal/venue name in the canonical form `该成果以"Paper Title"为题，发表在"Journal Name"上。`. Enclose both names with straight ASCII double quotes (`"`); do not use `《》`, Chinese curly quotation marks (`“”`), translated or abbreviated names, or an unquoted venue.
+- The final authored paragraph is a standalone summary. Prefer `综上，`; `总体而言，` and `总的来说，` are accepted alternatives. It must contain at least 80 non-whitespace characters, end with `。`, and synthesize the problem, approach, key evidence/results, and significance without adding unsupported claims. Aim for roughly 100–200 Chinese characters when the source evidence supports that length.
 - Use `作者` rather than assigning the source paper's contribution to the digest writer.
 
 ## 6. Visual acceptance criteria

@@ -92,6 +92,7 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 - Omit formulas by default. Explain mechanisms in concise prose; keep a formula only when the core idea cannot be understood without it.
 - Use ASCII parentheses `()` when the entire parenthetical content is English/ASCII, such as `(AEU)` or `(MFEL-YOLO)`. Use `（）` when Chinese is present.
 - State the publication metadata in the opening with both exact English names, using this sentence: `该成果以"Paper Title"为题，发表在"Journal Name"上。` The paper title and journal/venue name must each be enclosed in straight ASCII double quotes (`"`). Do not use `《》`, Chinese curly quotation marks (`“”`), a translated/abbreviated title or venue, or leave either name unquoted.
+- End the authored body with a separate summary paragraph in the `conclusion` slot. Prefer `综上，`; `总体而言，` and `总的来说，` are also accepted. The paragraph must be at least 80 non-whitespace characters, end with `。`, and synthesize the research problem, proposed approach, key evidence/results, and significance without introducing claims not already supported by the PDF and preceding body.
 - Do not fabricate metadata, numerical results, dataset details, or conclusions. Keep every technical claim traceable to the PDF.
 - Write compact, natural Chinese rather than sentence-by-sentence translation.
 
@@ -103,6 +104,7 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 - Keep the original PDF filename, cover, scientific figures/table, avatar, and publication TXT in the root folder.
 - Title: 15 pt, dark blue, bold; Chinese explicitly 黑体 and Latin Times New Roman.
 - Put `撰稿人：姓名` below the title and before a cover image that visibly includes journal/venue, full English title, and authors.
+- Paragraph 24 is the final authored paragraph and must contain the standalone conclusion; figure analysis must not substitute for it.
 - Keep the final writer card and disclaimer together on a new page.
 - Do not overwrite unrelated existing outputs. When correcting a deliverable created in the current task, write and validate the replacement first, then remove the wrong generated copy.
 - Deliver no DOCX before its latest Word render has been inspected page by page.

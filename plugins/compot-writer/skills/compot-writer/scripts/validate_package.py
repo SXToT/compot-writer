@@ -18,6 +18,7 @@ from build_package import (
     SLOT_RATIOS,
     load_manifest,
     resolve_manifest_path,
+    validate_conclusion,
     validate_publication_metadata,
 )
 from user_profile import load_user_profile
@@ -129,6 +130,10 @@ def main() -> None:
         )
     except (IndexError, ValueError) as exc:
         failures.append(f"Publication metadata format is invalid: {exc}")
+    try:
+        validate_conclusion(document.paragraphs[24].text)
+    except (IndexError, ValueError) as exc:
+        failures.append(f"Final conclusion is invalid: {exc}")
     body_chars = sum(len(document.paragraphs[index].text) for index in CONTENT_INDICES)
     if not 2200 <= body_chars <= 3600:
         warnings.append(f"Authored body length is {body_chars} characters; reference target is roughly 2500–3200")
