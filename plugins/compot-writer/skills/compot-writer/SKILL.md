@@ -11,7 +11,7 @@ Create a complete numbered 文献速递 package. Treat the PDF as the content au
 
 Load `pdf:pdf` and `documents:documents`. Read [references/layout-contract.md](references/layout-contract.md). Read [references/template-evidence.md](references/template-evidence.md) only when diagnosing template fidelity or using the bundled fallback.
 
-Call the workspace dependency loader once and use its bundled Python path for every `python` command below; do not use system `python`/`py`. On the current Windows desktop runtime this is typically `C:\Users\<user>\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe`, but always use the path returned for the active session.
+Call the workspace dependency loader once and use its bundled Python path for every `python` command below; do not use system `python`/`py`. On the current Windows desktop runtime this is typically `C:\Users\<user>\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe`, but always use the path returned for the active session. Use `python -X utf8` on Windows so Chinese paths and PDF metadata cannot turn a successful processing stage into a console-encoding failure.
 
 ## Resolve inputs once
 
@@ -40,7 +40,7 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
    python scripts/find_template.py --workspace "." --cache "job/template-cache.json"
    ```
 
-   The search prioritizes numbered top-level folders, prunes generated directories, caches inspected files, and caps a broad scan at 250 candidates by default. Reuse the reported template for the task. Do not rescan after every edit. If no compatible local template exists, use `assets/reference-template.docx`; use `--scan-limit 0` only for a deliberate exhaustive search.
+   The search prioritizes numbered top-level folders, prunes generated directories, caches inspected files, and caps a broad scan at 250 candidates by default. Reuse the reported template for the task. Do not rescan after every edit. If no compatible local template exists, use `assets/reference-template.docx`; use `--scan-limit 0` only for a deliberate exhaustive search. For the unchanged bundled fallback, reuse `references/template-evidence.md` and the builder's SHA-256/unchanged-part checks. Do not redistill or render the reference template for every issue; do so only if the template hash or layout contract changes.
 
 2. **PDF preview and text:** Run once at preview resolution:
 
@@ -69,13 +69,13 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
 
    Draft mode stages the DOCX outside the watched output tree before copying it into place. This avoids incomplete packages and reduces file-lock races from sync/indexing software.
 
-5. **One final Word render:** Only after content, assets, naming, and fast validation are stable, copy the DOCX to a short fixed QA path and render with `scripts/render_word_cached.ps1`. It skips Word when the DOCX hash is unchanged. Convert the QA PDF with:
+5. **One final Word render:** Only after content, assets, naming, and fast validation are stable, copy the DOCX to a short fixed QA path and render with `scripts/render_word_cached.ps1`. It skips Word when the DOCX hash is unchanged. On Windows with native Word, use this as the rendering backend; do not also render with LibreOffice. If a companion renderer reports a missing backend, record that result and use the native Word fallback without repeatedly probing or installing the unavailable backend. On platforms without Word, use the companion document skill's supported renderer. Convert the accepted QA PDF with:
 
    ```powershell
    python scripts/render_pdf_pages.py "qa/output.pdf" --out-dir "job/word-pages"
    ```
 
-   The renderer safely replaces only prior `page-*.png` files in that QA directory. Visually inspect every page. Re-render only after a real DOCX change.
+   The PNG renderer caches by PDF path/size/mtime and DPI, and verifies the generated page-file fingerprints before a cache hit. It replaces only numbered `page-XX.png` outputs in that QA directory; use `--force` for a deliberate refresh. Visually inspect every page once for each accepted DOCX version. Re-render only after a real DOCX change. If only the outer ZIP/TXT naming changes, reuse the accepted Word render and page review.
 
 6. **Finalize once:** After visual QA passes, create the outer ZIP from the accepted folder:
 
@@ -85,6 +85,14 @@ Use one task-local job directory and reuse it throughout. Do not repeat unchange
    ```
 
    The finalizer uses the saved writer profile by default. For a per-task writer override, pass `--author "姓名"`. If replacing a ZIP generated earlier in the same task, add `--replace`. Copy final deliverables to their destination only after final validation. Compare delivery hashes once; do not repeatedly hash during drafting.
+
+## Keep review proportional
+
+Keep the source reading, exact numerical checks (including AP versus AP50 and percentage points), selected-figure inspection, publication-sentence/conclusion checks, plain-text DOI check, final all-page Word inspection, and one final package integrity check. These protect the actual deliverable and must not be skipped for speed.
+
+Do not add unrelated review stages to a normal issue: no audits or rewrites of sibling manuscripts, external literature/citation searches when the supplied PDF already provides the needed metadata, repository/code downloads, HTML/export round-trips, repeated ZIP extraction, or full template redistillation. Companion template checks for comments, footnotes, headings, accessibility, and pixel differences are conditional on those features being changed or requested; unchanged parts are protected by the builder's existing checks. Run skill regression tests when modifying the skill, not for every article.
+
+Record timings from actual command results when reviewing performance. Separate automated execution time from source reading, writing, visual inspection, approvals, and communication; do not claim an overall speedup percentage from a few sub-second tool stages. Resume completed stages from the task-local cache after interruptions instead of re-reading/re-rendering unchanged files.
 
 ## Non-negotiable writing rules
 

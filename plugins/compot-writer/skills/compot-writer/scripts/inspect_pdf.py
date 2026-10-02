@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
 try:
@@ -35,6 +36,10 @@ def clean_doi(value: str) -> str:
 
 
 def main() -> None:
+    # PDF metadata can contain characters absent from a Windows legacy code page.
+    # Keep the CLI report UTF-8 even when callers omit Python's -X utf8 flag.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="Extract text and render every page of a source paper PDF.")
     parser.add_argument("pdf", type=Path)
     parser.add_argument("--out-dir", required=True, type=Path)

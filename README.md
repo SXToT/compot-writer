@@ -30,6 +30,15 @@ The repository supports both Codex plugin installation and direct Skill installa
 - 永久更新默认资料：同时提供新的姓名和头像，并明确说明“更新默认撰稿人资料”。
 - 更换电脑、Codex 用户环境或重新初始化配置后，需要重新设置一次。
 
+### 执行效率与质量控制
+
+- 原文预览、模板选择和论文裁图复用任务内缓存；模板未变化时复用已有格式证据，不重复扫描或渲染参考模板。
+- 草稿阶段只检查文件夹和Word结构，不反复打包ZIP。稳定定稿后完成一次Word渲染和逐页检查，再生成并校验最终ZIP。
+- QA页面图片按PDF路径、大小、修改时间、DPI和输出图片状态缓存。源文件、参数或图片发生变化时自动重新生成，也可使用`--force`主动刷新。
+- Windows脚本采用UTF-8输出，避免中文路径或特殊元数据导致控制台编码错误。常规撰稿不额外审核其他稿件，也不执行无关的检索、下载或导出往返。
+
+效率优化不会跳过论文数值与图表核对、英文题名和英文期刊名的双引号检查、正文总结段、纯文本DOI、最终Word逐页检查及ZIP完整性校验。
+
 ## Install as a Codex plugin (recommended)
 
 Add the GitHub repository as a marketplace, then install the plugin:
@@ -75,4 +84,3 @@ plugins/compot-writer/
     references/
     scripts/
 ```
-
