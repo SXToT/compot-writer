@@ -46,6 +46,18 @@ PUBLICATION_METADATA_RE = re.compile(
 PUBLICATION_METADATA_EXAMPLE = '该成果以"Paper Title"为题，发表在"Journal Name"上。'
 CONCLUSION_PREFIXES = ("综上，", "总体而言，", "总的来说，")
 MIN_CONCLUSION_CHARS = 80
+PUBLICATION_DETAILS_RE = re.compile(
+    r"(?:\d{4}\s*年[^。！？\n]{0,16}(?:在线发表|正式发表|发表于|发表|出版)"
+    r"|(?:发表|出版)[^。！？\n]{0,12}\d{4}\s*年"
+    r"|第\s*\d+\s*卷(?:\s*第\s*\d+\s*期)?"
+    r"|(?:收录于|刊于)[^。！？\n]{0,24}第\s*\d+\s*期)"
+)
+SOURCE_LOCATOR_RE = re.compile(
+    r"(?:(?:原文|原论文|原始论文)\s*(?:中(?:的)?|的)?\s*(?:图|表)\s*(?:\d+|[IVXLCDM]+(?![A-Za-z])|[一二三四五六七八九十]+)"
+    r"|表\s*[IVXLCDM]+(?![A-Za-z])"
+    r"|original\s+(?:fig(?:ure)?\.?|table)\s*(?:\d+|[IVXLCDM]+(?![A-Za-z])))",
+    re.IGNORECASE,
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -95,6 +107,16 @@ def validate_conclusion(text: str) -> str:
             f"found {content_length}"
         )
     return conclusion
+
+
+def validate_public_account_style(
+    text: str, *, allow_bibliographic_details: bool = False
+) -> None:
+    """Keep source locators and unrequested catalog metadata out of public prose."""
+    if not allow_bibliographic_details and PUBLICATION_DETAILS_RE.search(text):
+        raise ValueError("Omit publication-year/volume/issue catalog details from public-account prose")
+    if SOURCE_LOCATOR_RE.search(text):
+        raise ValueError("Omit original-paper figure/table locators; use the digest's own captions")
 
 
 def require_text(value: object, label: str) -> str:
@@ -167,6 +189,10 @@ def load_manifest(
     slots[28] = source_link
 
     article = "\n".join(slots[index] for index in sorted(slots) if index not in (0, 1, 27, 28))
+    allow_details = manifest.get("allow_bibliographic_details", False)
+    if not isinstance(allow_details, bool):
+        raise ValueError("allow_bibliographic_details must be a boolean")
+    validate_public_account_style(article, allow_bibliographic_details=allow_details)
     forbidden = [label for label, pattern in FORBIDDEN_PATTERNS.items() if pattern.search(article)]
     if forbidden:
         raise ValueError(f"Authored content contains forbidden self-attribution: {forbidden}")
@@ -219,6 +245,52 @@ def enforce_title_font(paragraph: etree._Element) -> None:
         fonts.set(QN("eastAsia"), "黑体")
         ensure_child(rpr, "b")
         ensure_child(rpr, "bCs")
+
+
+def enforce_english_quote_font(paragraph: etree._Element) -> None:
+    """Isolate ASCII double quotes so East Asian font selection cannot override them."""
+    for run in list(paragraph.iter(QN("r"))):
+        if not any('"' in (node.text or "") for node in run.findall(QN("t"))):
+            continue
+        parent = run.getparent()
+        position = parent.index(run)
+        for child in run:
+            if child.tag == QN("rPr"):
+                continue
+            chunks = re.split(r'(")', child.text or "") if child.tag == QN("t") else [None]
+            for chunk in chunks:
+                if chunk == "":
+                    continue
+                new_run = copy.deepcopy(run)
+                for copied in list(new_run):
+                    if copied.tag != QN("rPr"):
+                        new_run.remove(copied)
+                copied_child = copy.deepcopy(child)
+                if chunk is not None:
+                    copied_child.text = chunk
+                    if chunk.startswith(" ") or chunk.endswith(" "):
+                        copied_child.set(f"{{{XML}}}space", "preserve")
+                new_run.append(copied_child)
+                if chunk == '"':
+                    rpr = new_run.find(QN("rPr"))
+                    if rpr is None:
+                        rpr = etree.Element(QN("rPr"))
+                        new_run.insert(0, rpr)
+                    fonts = rpr.find(QN("rFonts"))
+                    if fonts is None:
+                        fonts = etree.Element(QN("rFonts"))
+                        rpr.insert(0, fonts)
+                    for attr in ("asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme", "csTheme"):
+                        fonts.attrib.pop(QN(attr), None)
+                    for attr in ("ascii", "hAnsi", "eastAsia", "cs"):
+                        fonts.set(QN(attr), "Times New Roman")
+                    fonts.set(QN("hint"), "default")
+                    language = ensure_child(rpr, "lang")
+                    language.set(QN("val"), "en-US")
+                    language.set(QN("eastAsia"), "en-US")
+                parent.insert(position, new_run)
+                position += 1
+        parent.remove(run)
 
 
 def enforce_page_break_before(paragraph: etree._Element) -> None:
@@ -283,6 +355,8 @@ def patch_docx(
         )
     for index, text in slots.items():
         replace_text(paragraphs[index], text)
+        if index not in (0, 1, 27, 28):
+            enforce_english_quote_font(paragraphs[index])
     enforce_title_font(paragraphs[0])
     enforce_page_break_before(paragraphs[33])
     update_final_writer(paragraphs[33], author)

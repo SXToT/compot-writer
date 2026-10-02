@@ -42,6 +42,8 @@ Use UTF-8 JSON. All text must come from the source PDF.
 
 The builder requires every content field. `author` may be omitted when a saved writer profile exists; include it for a per-task override and pass the matching avatar to the builder. `figure1.text` has exactly two paragraphs; every other `text` field is one paragraph.
 
+`allow_bibliographic_details` is an optional boolean, defaulting to `false`. Set it to `true` only when the user explicitly requests publication-year/volume/issue details. It never permits original-paper figure/table crosswalks in authored prose or captions.
+
 ## 3. Paragraph plan
 
 The normalized template contains 36 direct body paragraphs and eight inline images. A compatible legacy template may contain 35 paragraphs because it lacks the opening writer line; the builder inserts that line before filling content. Other structures require explicit adaptation and must not be used silently.
@@ -86,7 +88,9 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - Avoid formulas, variable derivations, and equation-by-equation exposition. Explain mechanisms in plain Chinese.
 - Convert `（ASCII-only）` to `(ASCII-only)`. Keep Chinese parentheses for Chinese content.
 - Retain exact method names, dataset names, metrics, author surnames, publication venue, and numerical results.
-- The two opening paragraphs must include the exact English paper title and the exact English journal/venue name in the canonical form `该成果以"Paper Title"为题，发表在"Journal Name"上。`. Enclose both names with straight ASCII double quotes (`"`); do not use `《》`, Chinese curly quotation marks (`“”`), translated or abbreviated names, or an unquoted venue.
+- The two opening paragraphs must include the exact English paper title and the exact English journal/venue name in the canonical form `该成果以"Paper Title"为题，发表在"Journal Name"上。`. Enclose both names with straight ASCII double quotes (`"`); do not use `《》`, Chinese curly quotation marks (`“”`), translated or abbreviated names, or an unquoted venue. Each English quote in authored Word content must occupy a dedicated text run with `w:rFonts` explicitly setting `ascii`, `hAnsi`, `eastAsia`, and `cs` to `Times New Roman`. Remove theme-font overrides and use `hint="default"`; preserve the surrounding prose's existing fonts and formatting.
+- Omit bibliographic catalogue detail from the public-account prose by default: no online-first/publication years, dates, volume, issue, or sentences such as `论文于2023年在线发表，收录于2024年第34卷第1期。`. Retain the English title/venue introduction and source link. An explicitly requested metadata exception must use the optional manifest flag above; ordinary experimental/data-collection years remain allowed.
+- Use only local caption numbering (`图1`–`图5`, `表1`) and a descriptive caption. Remove `（原文图5）`, `（原文表I）`, `original Fig. 5`, and original-paper number references in prose such as `原论文图5` or `原文表V`. Keep traceability mappings in internal evidence notes, not the published Word. Do not erase or redraw scientific labels within authentic source images.
 - The final authored paragraph is a standalone summary. Prefer `综上，`; `总体而言，` and `总的来说，` are accepted alternatives. It must contain at least 80 non-whitespace characters, end with `。`, and synthesize the problem, approach, key evidence/results, and significance without adding unsupported claims. Aim for roughly 100–200 Chinese characters when the source evidence supports that length.
 - Use `作者` rather than assigning the source paper's contribution to the digest writer.
 

@@ -39,6 +39,14 @@ The repository supports both Codex plugin installation and direct Skill installa
 
 效率优化不会跳过论文数值与图表核对、英文题名和英文期刊名的双引号检查、正文总结段、纯文本DOI、最终Word逐页检查及ZIP完整性校验。
 
+### 公众号正文与图注规范
+
+- 开篇使用 `该成果以"英文论文题目"为题，发表在"英文期刊名"上。`，英文双引号在 Word 中单独使用 Times New Roman 字体。
+- 默认不写“2023年在线发表、2024年第34卷第1期”等编目说明；只有用户明确要求时才补充出版信息。
+- 图注只保留本推文的编号和名称，不附加“（原文图5）”“（原文表I）”，正文也不写原文图表号的对应关系。内部核对记录仍保留来源，论文裁图中的科学标记不改动。
+
+这些要求同时落实在写作规则、Word 生成器和自动校验中；生成器会阻止不合规正文，并将英文引号拆为独立字体片段。
+
 ## Install as a Codex plugin (recommended)
 
 Add the GitHub repository as a marketplace, then install the plugin:

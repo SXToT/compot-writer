@@ -20,6 +20,7 @@ from build_package import (
     resolve_manifest_path,
     validate_conclusion,
     validate_publication_metadata,
+    validate_public_account_style,
 )
 from user_profile import load_user_profile
 
@@ -30,6 +31,28 @@ FORMULA_RE = re.compile(r"(?:\\frac|\\sum|\\begin\{equation|∑|∫)")
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def validate_quote_fonts(paragraph) -> None:
+    """Check the explicit fonts of visible English double-quote runs."""
+    for run in paragraph.iter(qn("w:r")):
+        text = "".join(node.text or "" for node in run.findall(qn("w:t")))
+        if '"' not in text:
+            continue
+        if text != '"' or len(run.findall(qn("w:t"))) != 1:
+            raise ValueError("English double quotes must occupy separate runs")
+        properties = run.find(qn("w:rPr"))
+        fonts = properties.find(qn("w:rFonts")) if properties is not None else None
+        if fonts is None or any(
+            fonts.get(qn("w:" + name)) != "Times New Roman"
+            for name in ("ascii", "hAnsi", "eastAsia", "cs")
+        ):
+            raise ValueError("English double quotes must explicitly use Times New Roman in all font slots")
+        if any(fonts.get(qn("w:" + name)) is not None for name in
+               ("asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme", "csTheme")):
+            raise ValueError("Remove theme-font overrides from English double quotes")
+        if fonts.get(qn("w:hint")) not in (None, "default"):
+            raise ValueError("English double quotes must not retain an East Asian font hint")
 
 
 def main() -> None:
@@ -116,6 +139,17 @@ def main() -> None:
             failures.append(f"Title run is not 15 pt: {run.text!r}")
 
     article = "\n".join(document.paragraphs[index].text for index in CONTENT_INDICES)
+    try:
+        validate_public_account_style(
+            article, allow_bibliographic_details=manifest.get("allow_bibliographic_details", False)
+        )
+    except ValueError as exc:
+        failures.append(f"Public-account prose is invalid: {exc}")
+    for index in CONTENT_INDICES:
+        try:
+            validate_quote_fonts(document.paragraphs[index]._element)
+        except ValueError as exc:
+            failures.append(f"English quote font is invalid in paragraph {index}: {exc}")
     forbidden = [label for label, pattern in FORBIDDEN_PATTERNS.items() if pattern.search(article)]
     if forbidden:
         failures.append(f"Forbidden self-attribution remains: {forbidden}")
