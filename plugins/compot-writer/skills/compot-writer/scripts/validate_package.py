@@ -15,12 +15,14 @@ from build_package import (
     ASSET_NAMES,
     FORBIDDEN_PATTERNS,
     FULLWIDTH_ASCII,
+    PROSE_INDICES,
     SLOT_RATIOS,
     load_manifest,
     resolve_manifest_path,
     validate_conclusion,
     validate_publication_metadata,
     validate_public_account_style,
+    validate_visual_references,
 )
 from user_profile import load_user_profile
 
@@ -53,6 +55,16 @@ def validate_quote_fonts(paragraph) -> None:
             raise ValueError("Remove theme-font overrides from English double quotes")
         if fonts.get(qn("w:hint")) not in (None, "default"):
             raise ValueError("English double quotes must not retain an East Asian font hint")
+
+
+def validate_document_visual_references(document) -> None:
+    """Audit the actual Word prose, not only the input manifest or captions."""
+    slots = {
+        index: document.paragraphs[index].text
+        for index in PROSE_INDICES
+        if index < len(document.paragraphs)
+    }
+    validate_visual_references(slots)
 
 
 def main() -> None:
@@ -145,6 +157,10 @@ def main() -> None:
         )
     except ValueError as exc:
         failures.append(f"Public-account prose is invalid: {exc}")
+    try:
+        validate_document_visual_references(document)
+    except ValueError as exc:
+        failures.append(f"Body figure/table references are invalid: {exc}")
     for index in CONTENT_INDICES:
         try:
             validate_quote_fonts(document.paragraphs[index]._element)

@@ -28,13 +28,13 @@ Use UTF-8 JSON. All text must come from the source PDF.
   ],
   "figure1": {
     "caption": "图1 方法总体结构",
-    "text": ["总体框架说明。", "第一关键模块及设计动机。"]
+    "text": ["作者设计了由多个阶段组成的处理框架，整体结构如图1所示。", "第一关键模块及设计动机。"]
   },
-  "figure2": {"caption": "图2 模块结构", "text": "模块工作方式与消融结果。"},
-  "figure3": {"caption": "图3 模块结构", "text": "模块工作方式。"},
-  "figure4": {"caption": "图4 两个模块（左）和（右）的结构", "text": "跨层或检测阶段说明。"},
-  "table1": {"caption": "表1 主要数据集上的性能对比", "text": "实验设置与关键定量结果。"},
-  "figure5": {"caption": "图5 定性结果对比", "text": "定性结果、消融证据或误差分析。"},
+  "figure2": {"caption": "图2 模块结构", "text": "该模块通过特征交互增强目标表示，其结构如图2所示。"},
+  "figure3": {"caption": "图3 模块结构", "text": "该模块用于筛选有效信息，具体工作方式见图3。"},
+  "figure4": {"caption": "图4 两个模块（左）和（右）的结构", "text": "跨层信息在检测阶段进行融合，两个模块的结构如图4所示。"},
+  "table1": {"caption": "表1 主要数据集上的性能对比", "text": "作者在主要数据集上进行性能比较，定量结果见表1。"},
+  "figure5": {"caption": "图5 定性结果对比", "text": "方法对比呈现出不同的检测表现，定性结果见图5。"},
   "conclusion": "综上，概括研究问题、所提方法、关键实验或定量证据，以及该成果的意义；不得引入正文和原文均未支持的新结论。",
   "source_link": "https://doi.org/..."
 }
@@ -91,6 +91,8 @@ Crop from high-resolution page renders. Include figure labels and legends when t
 - The two opening paragraphs must include the exact English paper title and the exact English journal/venue name in the canonical form `该成果以"Paper Title"为题，发表在"Journal Name"上。`. Enclose both names with straight ASCII double quotes (`"`); do not use `《》`, Chinese curly quotation marks (`“”`), translated or abbreviated names, or an unquoted venue. Each English quote in authored Word content must occupy a dedicated text run with `w:rFonts` explicitly setting `ascii`, `hAnsi`, `eastAsia`, and `cs` to `Times New Roman`. Remove theme-font overrides and use `hint="default"`; preserve the surrounding prose's existing fonts and formatting.
 - Omit bibliographic catalogue detail from the public-account prose by default: no online-first/publication years, dates, volume, issue, or sentences such as `论文于2023年在线发表，收录于2024年第34卷第1期。`. Retain the English title/venue introduction and source link. An explicitly requested metadata exception must use the optional manifest flag above; ordinary experimental/data-collection years remain allowed.
 - Use only local caption numbering (`图1`–`图5`, `表1`) and a descriptive caption. Remove `（原文图5）`, `（原文表I）`, `original Fig. 5`, and original-paper number references in prose such as `原论文图5` or `原文表V`. Keep traceability mappings in internal evidence notes, not the published Word. Do not erase or redraw scientific labels within authentic source images.
+- Each scientific figure/table must have at least one natural body reference in its own explanation block: `figure1.text` (either paragraph) cites `图1`, `figure2.text` cites `图2`, through `figure5.text` citing `图5`; `table1.text` cites `表1`. Caption text, cover/avatar images, or a reference only in an unrelated paragraph do not fulfill this requirement. Grouped references (`图2、3`, `图2–图4`) are allowed when each explanation actually relates to those figures. All referenced numbers must exist in this digest.
+- A body paragraph must not open with a figure/table callout: reject `如图1所示，…`, `见表1，…`, `图2展示了…`, `由图3可见，…`, and equivalent leading references even after indentation, parentheses, or filler such as `此外，`. State the research content first and embed the callout naturally, e.g. `作者构建了分层处理框架，整体结构如图1所示。`. This is a paragraph-start rule, not a prohibition on references at the start of later sentences. Figure/table captions still begin with their own labels. The builder checks the manifest before generation, and the package validator independently checks actual Word paragraphs; semantic correspondence still requires source-based review.
 - The final authored paragraph is a standalone summary. Prefer `综上，`; `总体而言，` and `总的来说，` are accepted alternatives. It must contain at least 80 non-whitespace characters, end with `。`, and synthesize the problem, approach, key evidence/results, and significance without adding unsupported claims. Aim for roughly 100–200 Chinese characters when the source evidence supports that length.
 - Use `作者` rather than assigning the source paper's contribution to the digest writer.
 

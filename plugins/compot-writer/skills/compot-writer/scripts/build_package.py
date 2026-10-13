@@ -58,6 +58,28 @@ SOURCE_LOCATOR_RE = re.compile(
     r"|original\s+(?:fig(?:ure)?\.?|table)\s*(?:\d+|[IVXLCDM]+(?![A-Za-z])))",
     re.IGNORECASE,
 )
+VISUAL_TEXT_SLOTS = {
+    ("图", 1): (7, 8),
+    ("图", 2): (11,),
+    ("图", 3): (14,),
+    ("图", 4): (17,),
+    ("表", 1): (20,),
+    ("图", 5): (23,),
+}
+PROSE_INDICES = (3, 4, 7, 8, 11, 14, 17, 20, 23, 24)
+VISUAL_REFERENCE_RE = re.compile(
+    r"(?P<kind>图|表)\s*(?P<number>\d+)"
+    r"(?P<tail>(?:\s*[、,，和及与或\-–—~～至到]\s*(?:(?P=kind)\s*)?"
+    r"\d+(?![\d个次组项类种层倍处张幅%％]|\.\d))*)"
+)
+REFERENCE_TAIL_RE = re.compile(
+    r"(?P<separator>[、,，和及与或\-–—~～至到])\s*(?:图|表)?\s*(?P<number>\d+)"
+)
+REFERENCE_LEAD_RE = re.compile(
+    r"^[\s\ufeff\u200b\"'“‘（(\[【]*"
+    r"(?:(?:此外|同时|另外|首先|其次|最后|因此)[，,：:]\s*)?"
+    r"(?:如|见|参见|详见|参照|参考|根据|依据|结合|由|从|在|通过)?\s*(?:图|表)\s*\d+"
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -117,6 +139,53 @@ def validate_public_account_style(
         raise ValueError("Omit publication-year/volume/issue catalog details from public-account prose")
     if SOURCE_LOCATOR_RE.search(text):
         raise ValueError("Omit original-paper figure/table locators; use the digest's own captions")
+
+
+def extract_visual_references(text: str) -> set[tuple[str, int]]:
+    """Read local labels, including lists/ranges such as 图2、3 and 图2–图4."""
+    references: set[tuple[str, int]] = set()
+    for match in VISUAL_REFERENCE_RE.finditer(text):
+        kind = match.group("kind")
+        previous = int(match.group("number"))
+        references.add((kind, previous))
+        for item in REFERENCE_TAIL_RE.finditer(match.group("tail")):
+            number = int(item.group("number"))
+            references.add((kind, number))
+            if item.group("separator") in "-–—~～至到":
+                if number < previous:
+                    raise ValueError("Figure/table reference ranges must be in ascending order")
+                limit = 5 if kind == "图" else 1
+                # Invalid endpoints are reported below; never expand an unbounded range.
+                if 1 <= previous <= number <= limit:
+                    references.update((kind, n) for n in range(previous, number + 1))
+            previous = number
+    return references
+
+
+def validate_visual_references(slots: dict[int, str]) -> None:
+    """Require contextual body callouts, excluding captions, cover and writer card."""
+    expected = set(VISUAL_TEXT_SLOTS)
+    paragraph_references: dict[int, set[tuple[str, int]]] = {}
+    for index in PROSE_INDICES:
+        text = slots.get(index, "")
+        if REFERENCE_LEAD_RE.match(text):
+            raise ValueError(
+                f"Figure/table reference must not lead paragraph {index}; "
+                "state the research content before 如图X所示/见表X"
+            )
+        references = extract_visual_references(text)
+        unknown = references - expected
+        if unknown:
+            labels = ", ".join(f"{kind}{number}" for kind, number in sorted(unknown))
+            raise ValueError(f"Unknown local figure/table reference in paragraph {index}: {labels}")
+        paragraph_references[index] = references
+    for label, indices in VISUAL_TEXT_SLOTS.items():
+        if not any(label in paragraph_references[index] for index in indices):
+            kind, number = label
+            raise ValueError(
+                f"Missing body reference to {kind}{number} in its explanatory paragraphs {indices}; "
+                "caption labels and references elsewhere do not satisfy this check"
+            )
 
 
 def require_text(value: object, label: str) -> str:
@@ -193,6 +262,7 @@ def load_manifest(
     if not isinstance(allow_details, bool):
         raise ValueError("allow_bibliographic_details must be a boolean")
     validate_public_account_style(article, allow_bibliographic_details=allow_details)
+    validate_visual_references(slots)
     forbidden = [label for label, pattern in FORBIDDEN_PATTERNS.items() if pattern.search(article)]
     if forbidden:
         raise ValueError(f"Authored content contains forbidden self-attribution: {forbidden}")
